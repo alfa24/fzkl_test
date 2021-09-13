@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Галерея</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.js"></script>
+    <link rel="stylesheet" href="https://www.dropzonejs.com/css/dropzone.css"/>
+    <link rel="stylesheet" href="https://www.dropzonejs.com/css/style.css"/>
+</head>
+<body>
+<main class="floor floor--main">
+<a href="{% url 'demo:index' %}">Добавить картинку</a>
+    <div class="floor__max-width" style="max-width: 800px">
+        <h1>Галерея</h1>
+        <div id="fotorama"></div>
+    </div>
+</main>
+</body>
+<script>
+    $(function () {
+        const $window = $(window),
+            $body = $('body'),
+            $fotoramaDiv = $('#fotorama'),
+            pixelRatio = window.devicePixelRatio || 1,
+            width = Math.min(760 * pixelRatio, 1280),
+            ratio = 1.5,
+            thumbHeight = 56,
+            thumbWidth = thumbHeight * ratio;
+
+        function addImageToFotorama(fotorama) {
+            // Запрашивает новые фото с сервера и добавляет их в fotorama.
+            let size = fotorama.size;
+
+            $.ajax({
+                url: "{% url 'images:images-list' %}?limit=5&offset=" + size,
+                cache: false
+            }).done(function (data) {
+                let results = $.map(data['results'], function (item) {
+                    return {img: item['transform_file'], thumb: item['source_file'], id: item['id']}
+                });
+                fotorama.push(...results);
+            }).error(function () {
+                console.log('Ошибка загрузки картинок.');
+            });
+        }
+
+        const $fotorama = $fotoramaDiv.fotorama({
+            data: [],
+            clicktransition: 'dissolve',
+            width: '100%',
+            ratio: ratio,
+            hash: true,
+            maxheight: '100%',
+            nav: 'thumbs',
+            margin: 2,
+            shuffle: true,
+            thumbmargin: 2,
+            thumbwidth: thumbWidth,
+            thumbheight: thumbHeight,
+            allowfullscreen: 'native',
+            keyboard: {space: true},
+            shadows: false,
+            fit: 'cover'
+        });
+        $fotoramaDiv.on('fotorama:show', function (e, fotorama, extra) {
+            if (fotorama.size - fotorama.activeIndex <= 2) {
+                addImageToFotorama(fotorama);
+            }
+        });
+
+        addImageToFotorama($fotorama.data('fotorama'));
+    });
+</script>
+</html>

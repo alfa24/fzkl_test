@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузка</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
+    <link rel="stylesheet" href="https://rawgit.com/enyo/dropzone/master/dist/dropzone.css">
+    <link rel="stylesheet" href="https://www.dropzonejs.com/css/dropzone.css"/>
+    <link rel="stylesheet" href="https://www.dropzonejs.com/css/style.css"/>
+</head>
+<body>
+<main>
+    <a href="{% url 'demo:gallery' %}">Галерея</a>
+    <h1>Загрузка картинок</h1>
+    <section style="max-width: 800px">
+        <div id="dropzone">
+            <form id="myDropzone" action="{% url 'images:images-list' %}" class="dropzone needsclick">
+                {% csrf_token %}
+                <div class="dz-message needsclick">
+                    <button type="button" class="dz-button">Drop files here or click to upload.</button>
+                    <br/>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+<script>
+    $(function () {
+        Dropzone.options.myDropzone = {
+            addRemoveLinks: true,
+            paramName: 'source_file',
+            init: function () {
+                this.on("removedfile", function (file) {
+                    let xhr = new XMLHttpRequest();
+                    let url = file.xhr.responseURL + JSON.parse(file.xhr.response)['id']
+                    xhr.open("DELETE", url, true);
+                    xhr.send(null);
+                });
+            }
+        };
+    });
+</script>
+</html>
